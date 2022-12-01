@@ -30,13 +30,12 @@ fn main() {
     }
 
     elves.push(new_elf);
-    let mut totals: Vec<i32> = Vec::new();
 
-    for elf in elves {
-        totals.push(elf.get_total());
-    }
-    totals.sort();
-    totals.reverse();
+    elves.sort_by(|a, b| b.get_total().cmp(&a.get_total()));
 
-    println!("{:?} {}", totals, totals[0] + totals[1] + totals[2]);
+    println!(
+        "{:?} {}",
+        elves,
+        elves[0].get_total() + elves[1].get_total() + elves[2].get_total()
+    );
 }
