@@ -28,14 +28,15 @@ fn main() {
             new_elf.add(line.parse::<i32>().unwrap());
         }
     }
+
     elves.push(new_elf);
-    let mut largest = 0;
+    let mut totals: Vec<i32> = Vec::new();
+
     for elf in elves {
-        let total = elf.get_total();
-        if total > largest {
-            largest = total
-        }
-        println!("{}", elf.get_total());
+        totals.push(elf.get_total());
     }
-    println!("Largest: {}", largest);
+    totals.sort();
+    totals.reverse();
+
+    println!("{:?} {}", totals, totals[0] + totals[1] + totals[2]);
 }
