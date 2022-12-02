@@ -17,7 +17,6 @@ enum RockPaperScissors {
 }
 
 fn calc_score(ours: RockPaperScissors, theirs: RockPaperScissors) -> i32 {
-    println!("{:?} vs {:?}", ours, theirs);
     match ours {
         RockPaperScissors::Rock => match theirs {
             RockPaperScissors::Rock => 1 + 3,
@@ -36,6 +35,7 @@ fn calc_score(ours: RockPaperScissors, theirs: RockPaperScissors) -> i32 {
         },
     }
 }
+
 fn convert_line(str: &String) -> (RockPaperScissors, RockPaperScissors) {
     let tokens: Vec<&str> = str.split_whitespace().collect();
 
@@ -46,9 +46,24 @@ fn convert_line(str: &String) -> (RockPaperScissors, RockPaperScissors) {
         _ => panic!("{}", tokens[0]),
     };
     let second = match tokens[1] {
-        "X" => RockPaperScissors::Rock,
-        "Y" => RockPaperScissors::Paper,
-        "Z" => RockPaperScissors::Scissors,
+        "X" => match first {
+            // need to lose
+            RockPaperScissors::Rock => RockPaperScissors::Scissors,
+            RockPaperScissors::Paper => RockPaperScissors::Rock,
+            RockPaperScissors::Scissors => RockPaperScissors::Paper,
+        },
+        "Y" => match first {
+            // need to draw
+            RockPaperScissors::Rock => RockPaperScissors::Rock,
+            RockPaperScissors::Paper => RockPaperScissors::Paper,
+            RockPaperScissors::Scissors => RockPaperScissors::Scissors,
+        },
+        "Z" => match first {
+            // need to win
+            RockPaperScissors::Rock => RockPaperScissors::Paper,
+            RockPaperScissors::Paper => RockPaperScissors::Scissors,
+            RockPaperScissors::Scissors => RockPaperScissors::Rock,
+        },
         _ => panic!("{}", tokens[0]),
     };
     (first, second)
