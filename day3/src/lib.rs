@@ -20,6 +20,25 @@ impl Rucksack {
         }
         panic!("No duplicates: {} {}", self.items_top, self.items_bottom);
     }
+
+    pub fn get_string(&self) -> String {
+        let result = self.items_top.clone() + &self.items_bottom;
+        result
+    }
+
+    pub fn find_all_duplicates(&self, str: &String) -> String {
+        let mut matches = String::new();
+        for ch in str.chars() {
+            if self.items_bottom.contains(ch) {
+                matches.push(ch);
+            }
+            if self.items_top.contains(ch) {
+                matches.push(ch);
+            }
+        }
+        matches
+    }
+
     pub fn get_priority(item: char) -> i32 {
         match item {
             'a'..='z' => 1 + (item as i32) - ('a' as i32),
