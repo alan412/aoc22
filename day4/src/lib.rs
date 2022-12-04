@@ -19,4 +19,8 @@ impl CleaningAssignment {
         }
         false
     }
+    pub fn overlap(&self, other: &CleaningAssignment) -> bool {
+        // x1 <= y2 && y1 <= x2
+        self.first <= other.second && other.first <= self.second
+    }
 }

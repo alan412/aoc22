@@ -32,7 +32,12 @@ fn main() {
             &caps.get(3).unwrap().as_str(),
             &caps.get(4).unwrap().as_str(),
         );
+        /*
         if ca_elf1.fully_contained(&ca_elf2) {
+            total += 1;
+        }
+        */
+        if ca_elf1.overlap(&ca_elf2) {
             total += 1;
         }
 
