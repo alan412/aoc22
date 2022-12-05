@@ -31,10 +31,7 @@ fn main() {
     let mut in_begin = true;
 
     let num_stacks = 9;
-    let mut crates: Vec<CrateStack> = Vec::with_capacity(num_stacks);
-    for _ in 0..num_stacks {
-        crates.push(CrateStack::new());
-    }
+    let mut crates: Vec<CrateStack> = vec![CrateStack::new(); num_stacks];
 
     let re = Regex::new(r"move (\d+) from (\d+) to (\d+)").unwrap();
 
