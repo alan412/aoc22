@@ -13,8 +13,17 @@ impl CrateStack {
     }
 
     pub fn transfer(&mut self, other: &mut CrateStack, num_crates: i32) {
-        for _ in 1..num_crates {
-            self.crates.push(other.crates.pop().unwrap());
+        for _ in 0..num_crates {
+            self.crates.push(other.pop());
+        }
+    }
+    pub fn transfer_part2(&mut self, other: &mut CrateStack, num_crates: i32) {
+        let mut tmp_stack: CrateStack = CrateStack::new();
+        for _ in 0..num_crates {
+            tmp_stack.push(other.pop());
+        }
+        for _ in 0..num_crates {
+            self.push(tmp_stack.pop());
         }
     }
     pub fn pop(&mut self) -> char {
