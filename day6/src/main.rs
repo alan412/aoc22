@@ -13,18 +13,18 @@ fn lines_from_file(filename: impl AsRef<Path>) -> io::Result<Vec<String>> {
 fn find_pattern(datastream: &Vec<char>) -> usize {
     let mut index = 0;
 
-    while index < datastream.len() - 3 {
+    while index < datastream.len() - 13 {
         let mut a: HashSet<char> = HashSet::new();
         let mut found = true;
 
-        for i in index..index + 4 {
+        for i in index..index + 14 {
             if a.insert(datastream[i]) == false {
                 found = false;
                 break;
             }
         }
         if found {
-            return index + 4;
+            return index + 14;
         }
         index += 1;
     }
