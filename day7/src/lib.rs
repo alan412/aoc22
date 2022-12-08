@@ -84,7 +84,7 @@ impl DirEntry {
     pub fn get_less_than(&self, size: u32) -> u32 {
         let mut total = 0;
         match self.info {
-            DirInfo::File(file_size) => 0,
+            DirInfo::File(_) => 0,
             DirInfo::Dir(ref v) => {
                 for item in v {
                     total += item.borrow().get_less_than(size);
@@ -96,6 +96,29 @@ impl DirEntry {
                 } else {
                     total
                 }
+            }
+        }
+    }
+    pub fn get_smallest_dir_larger_than(&self, size: u32) -> u32 {
+        match self.info {
+            DirInfo::File(_) => u32::MAX,
+            DirInfo::Dir(ref v) => {
+                let mut smallest = u32::MAX;
+
+                for item in v {
+                    let result = item.borrow().get_smallest_dir_larger_than(size);
+                    if result < smallest {
+                        smallest = result
+                    }
+                    if smallest == u32::MAX {
+                        // hasn't been found yet
+                        let our_size = self.get_size();
+                        if our_size > size {
+                            smallest = our_size;
+                        }
+                    }
+                }
+                smallest
             }
         }
     }

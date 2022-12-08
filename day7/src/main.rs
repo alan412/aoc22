@@ -65,6 +65,14 @@ fn main() {
         }
     }
     path[0].borrow().print_tree(0);
-    let answer = path[0].borrow().get_less_than(100000);
-    println!("Answer:{}", answer);
+    //let answer = path[0].borrow().get_less_than(100000);
+    let total_disk_space = 70000000;
+    let needed_free_space = 30000000;
+    let used_amount = path[0].borrow().get_size();
+    let current_free_space = total_disk_space - used_amount;
+    let need_to_free = needed_free_space - current_free_space;
+
+    let new_dir = path[0].borrow().get_smallest_dir_larger_than(need_to_free);
+
+    println!("Answer:{} {} {}", current_free_space, need_to_free, new_dir);
 }
