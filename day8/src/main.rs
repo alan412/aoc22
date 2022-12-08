@@ -22,5 +22,6 @@ fn main() {
     for line in lines {
         forest.add_line(line);
     }
-    println!("{:?} {}", forest, forest.count_visible());
+    //println!("{:?} {}", forest, forest.count_visible());
+    println!("{}", forest.get_highest_scenic());
 }
