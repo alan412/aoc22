@@ -29,6 +29,7 @@ fn main() {
             "U" => rope.up(distance),
             _ => panic!("Unknown direction"),
         }
+        rope.display();
     }
     println!("Answer: {}", rope.get_num_tail_visited());
 }

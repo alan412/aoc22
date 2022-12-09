@@ -28,59 +28,54 @@ impl Rope {
             tail_visited_points: tail_visited_points,
         }
     }
-    fn does_tail_need_move(&self) -> bool {
-        if (self.tail.x - self.head.x).abs() > 1 {
+    fn does_follower_need_move(head: &Point, tail: &Point) -> bool {
+        if (tail.x - head.x).abs() > 1 {
             true
         } else {
-            if (self.tail.y - self.head.y).abs() > 1 {
+            if (tail.y - head.y).abs() > 1 {
                 true
             } else {
                 false
             }
         }
     }
-    fn move_tail(&mut self) {
-        let old_tail = self.tail;
-        if self.head.x == self.tail.x {
-            if self.head.y > self.tail.y {
-                self.tail.y += 1
+    fn move_tail(head: &Point, tail: &mut Point) {
+        if head.x == tail.x {
+            if head.y > tail.y {
+                tail.y += 1
             } else {
-                self.tail.y -= 1
+                tail.y -= 1
             }
-        } else if self.head.y == self.tail.y {
-            if self.head.x > self.tail.x {
-                self.tail.x += 1
+        } else if head.y == tail.y {
+            if head.x > tail.x {
+                tail.x += 1
             } else {
-                self.tail.x -= 1
+                tail.x -= 1
             }
         } else {
-            if self.head.x < self.tail.x {
-                self.tail.x -= 1;
-                if self.head.y < self.tail.y {
-                    self.tail.y -= 1;
+            if head.x < tail.x {
+                tail.x -= 1;
+                if head.y < tail.y {
+                    tail.y -= 1;
                 } else {
-                    self.tail.y += 1;
+                    tail.y += 1;
                 }
             } else {
-                self.tail.x += 1;
-                if self.head.y < self.tail.y {
-                    self.tail.y -= 1;
+                tail.x += 1;
+                if head.y < tail.y {
+                    tail.y -= 1;
                 } else {
-                    self.tail.y += 1;
+                    tail.y += 1;
                 }
             }
         }
-        println!(
-            "Tail from {:?} to {:?} ({:?})",
-            old_tail, self.tail, self.head
-        )
     }
 
     fn move_head(&mut self, amount_x: i32, amount_y: i32) {
         self.head.x += amount_x;
         self.head.y += amount_y;
-        if self.does_tail_need_move() {
-            self.move_tail();
+        if Self::does_follower_need_move(&self.head, &self.tail) {
+            Self::move_tail(&self.head, &mut self.tail);
             self.tail_visited_points.entry(self.tail).or_insert(0);
             let num_times_visited = self.tail_visited_points.get(&self.tail).unwrap() + 1;
             _ = self
@@ -114,8 +109,10 @@ impl Rope {
     }
 
     pub fn get_num_tail_visited(&self) -> usize {
-        println!("{:?}", self.tail_visited_points);
         self.tail_visited_points.keys().len()
+    }
+    pub fn display(&self) {
+        println!("H: {:?} T:{:?}", self.head, self.tail);
     }
 }
 // let val = m.entry(k).or_insert(d);
