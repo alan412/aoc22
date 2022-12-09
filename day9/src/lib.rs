@@ -8,7 +8,7 @@ struct Point {
 #[derive(Debug)]
 pub struct Rope {
     head: Point,
-    tail: Point,
+    tails: Vec<Point>,
     tail_visited_points: HashMap<Point, u32>,
 }
 
@@ -22,9 +22,10 @@ impl Rope {
     pub fn new() -> Self {
         let mut tail_visited_points = HashMap::new();
         tail_visited_points.insert(Point::new(0, 0), 1);
+        let tails = vec![Point::new(0, 0); 9];
         Self {
             head: Point::new(0, 0),
-            tail: Point::new(0, 0),
+            tails: tails,
             tail_visited_points: tail_visited_points,
         }
     }
@@ -74,13 +75,23 @@ impl Rope {
     fn move_head(&mut self, amount_x: i32, amount_y: i32) {
         self.head.x += amount_x;
         self.head.y += amount_y;
-        if Self::does_follower_need_move(&self.head, &self.tail) {
-            Self::move_tail(&self.head, &mut self.tail);
-            self.tail_visited_points.entry(self.tail).or_insert(0);
-            let num_times_visited = self.tail_visited_points.get(&self.tail).unwrap() + 1;
-            _ = self
-                .tail_visited_points
-                .insert(self.tail, num_times_visited);
+        for i in 0..self.tails.len() {
+            let leader = if (i == 0) {
+                self.head
+            } else {
+                self.tails[i - 1]
+            };
+            if Self::does_follower_need_move(&leader, &self.tails[i]) {
+                Self::move_tail(&leader, &mut self.tails[i]);
+                if i == (self.tails.len() - 1) {
+                    self.tail_visited_points.entry(self.tails[i]).or_insert(0);
+                    let num_times_visited =
+                        self.tail_visited_points.get(&self.tails[i]).unwrap() + 1;
+                    _ = self
+                        .tail_visited_points
+                        .insert(self.tails[i], num_times_visited);
+                }
+            }
         }
     }
 
@@ -112,7 +123,7 @@ impl Rope {
         self.tail_visited_points.keys().len()
     }
     pub fn display(&self) {
-        println!("H: {:?} T:{:?}", self.head, self.tail);
+        println!("H: {:?} T:{:?}", self.head, self.tails);
     }
 }
 // let val = m.entry(k).or_insert(d);
