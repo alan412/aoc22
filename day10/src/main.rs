@@ -22,7 +22,6 @@ fn main() {
         cpu.add_line(line);
     }
     cpu.execute();
-    let mut total = 0;
     let mut line = String::new();
 
     for cycle in 0..240 {
