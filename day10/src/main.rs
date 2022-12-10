@@ -23,10 +23,21 @@ fn main() {
     }
     cpu.execute();
     let mut total = 0;
-    for cycle in [20, 60, 100, 140, 180, 220] {
-        let x = cpu.get_x_at(cycle);
-        println!("x at {} = {} ({})", cycle, x, cycle * x);
-        total += x * cycle;
+    let mut line = String::new();
+
+    for cycle in 0..240 {
+        let remainder = cycle % 40;
+        if remainder == 0 {
+            println!("{}", line);
+            line = String::new();
+        }
+        let x = cpu.get_x_at(cycle + 1);
+        let ch = if (x == remainder - 1) || (x == remainder) || (x == remainder + 1) {
+            '#'
+        } else {
+            '.'
+        };
+        line.push(ch);
     }
-    println!("Total: {}", total);
+    println!("{}", line);
 }

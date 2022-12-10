@@ -60,7 +60,7 @@ impl Cpu {
             match self.x_at.get(&check_cycle) {
                 Option::None => check_cycle -= 1,
                 Option::Some(val) => {
-                    println!("Returning {} at {}", val, check_cycle);
+                    // println!("Returning {} at {}", val, check_cycle);
                     return *val;
                 }
             }
