@@ -1,15 +1,15 @@
 #[derive(Debug)]
 enum Operation {
-    TIMES(i32),
-    ADD(i32),
+    TIMES(i64),
+    ADD(i64),
     SQUARE,
 }
 
 #[derive(Debug)]
 pub struct Monkey {
-    pub items: Vec<i32>,
+    pub items: Vec<i64>,
     op: Operation,
-    test: u32,
+    pub test: u32,
     pass_true: usize,
     pass_false: usize,
     pub num_inspected: u32,
@@ -67,10 +67,10 @@ impl Monkey {
         me.parse_pass_false(&lines[5]);
         me
     }
-    pub fn add_item(&mut self, item: i32) {
+    pub fn add_item(&mut self, item: i64) {
         self.items.push(item);
     }
-    pub fn toss(&mut self) -> Option<(usize, i32)> {
+    pub fn toss(&mut self) -> Option<(usize, i64)> {
         if self.items.len() == 0 {
             None
         } else {
@@ -83,9 +83,9 @@ impl Monkey {
                 Operation::SQUARE => item * item,
             };
             //println!(" after op: {}", item);
-            item = item / 3;
+            //item = item / 3;
             //println!(" after div: {}", item);
-            let dest = if (item % self.test as i32) == 0 {
+            let dest = if (item % self.test as i64) == 0 {
                 self.pass_true
             } else {
                 self.pass_false

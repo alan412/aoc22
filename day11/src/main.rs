@@ -27,7 +27,11 @@ fn main() {
         ))));
         starting_line += 7;
     }
-    for round in 1..=20 {
+    let mut common_divisor: i64 = 1;
+    for monkey in &monkeys {
+        common_divisor *= monkey.borrow().test as i64;
+    }
+    for round in 1..=10_000 {
         for monkey in &monkeys {
             let monkey: &mut Monkey = &mut monkey.borrow_mut();
             let mut done = false;
@@ -36,15 +40,16 @@ fn main() {
                     None => done = true,
                     Some((dest, item)) => {
                         let mut dest_monkey = monkeys[dest].borrow_mut();
-                        dest_monkey.add_item(item)
+                        dest_monkey.add_item(item % common_divisor)
                     }
                 }
             }
         }
+
         println!("After round {}", round);
         for monkey in &monkeys {
             let monkey = monkey.borrow();
-            println!("Monkey {} {:?}", monkey.num_inspected, monkey.items);
+            println!("Monkey {}", monkey.num_inspected);
         }
     }
     //println!("{:?}", monkeys);
