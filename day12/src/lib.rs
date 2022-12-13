@@ -96,4 +96,35 @@ impl HeightMap {
             Some((path, cost)) => println!("Path: {:?} cost: {}", path, cost),
         }
     }
+
+    pub fn find_path_pt2(&self) {
+        let mut poss_starting: Vec<Point> = Vec::new();
+        for y in 0..self.grid.len() {
+            for x in 0..self.grid[y as usize].len() {
+                if self.grid[y][x] == 0 {
+                    poss_starting.push(Point::new(x as i32, y as i32))
+                }
+            }
+        }
+        println!("Possible starting points: {:?}", poss_starting.len());
+        let mut shortest = u32::MAX;
+        let goal: Point = self.target_pos;
+        for pt in poss_starting {
+            let result = astar(
+                &pt,
+                |p| self.successors(p),
+                |p| p.distance(&goal) / 3,
+                |p| *p == goal,
+            );
+            match result {
+                None => {}
+                Some((_path, cost)) => {
+                    if cost < shortest {
+                        shortest = cost;
+                    }
+                }
+            }
+        }
+        println!("Shortest found: {}", shortest);
+    }
 }

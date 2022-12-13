@@ -21,5 +21,5 @@ fn main() {
     for line in lines {
         height_map.add_line(line);
     }
-    height_map.find_path();
+    height_map.find_path_pt2();
 }
