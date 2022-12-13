@@ -23,18 +23,25 @@ fn main() {
             packets.push(Packet::new(&line));
         }
     }
-    let mut start_pair = 0;
-    let mut pair_num = 1;
-    let mut total = 0;
-    while start_pair < packets.len() {
-        if packets[start_pair] < packets[start_pair + 1] {
-            println!("Correct {}", pair_num);
-            total += pair_num;
-        } else {
-            println!("Wrong {}", pair_num);
+    packets.push(Packet::new("[[2]]"));
+    packets.push(Packet::new("[[6]]"));
+
+    packets.sort();
+
+    let divider1 = Packet::new("[[2]]");
+    let divider2 = Packet::new("[[6]]");
+
+    let mut index = 0;
+    let mut answer = 0;
+    while index < packets.len() {
+        if packets[index] == divider1 {
+            println!("Divider1 found at {}", index + 1);
+            answer = index + 1;
+        } else if packets[index] == divider2 {
+            println!("Divider2 found at {}", index + 1);
+            answer = answer * (index + 1);
         }
-        pair_num += 1;
-        start_pair += 2;
+        index += 1;
     }
-    println!("Total: {}", total);
+    println!("Answer: {}", answer);
 }
