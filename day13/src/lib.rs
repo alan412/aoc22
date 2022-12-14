@@ -4,7 +4,7 @@ use nom::{
 };
 use std::cmp::Ordering;
 
-#[derive(Debug, Clone, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Ord)]
 pub enum Packet {
     Int(u32),
     List(Vec<Packet>),
@@ -38,15 +38,5 @@ impl PartialOrd for Packet {
             },
             (Packet::List(_), Packet::Int(_)) => other.partial_cmp(self).map(Ordering::reverse),
         }
-    }
-}
-impl Ord for Packet {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).unwrap()
-    }
-}
-impl PartialEq for Packet {
-    fn eq(&self, other: &Self) -> bool {
-        self.cmp(other).is_eq()
     }
 }
