@@ -21,11 +21,10 @@ fn main() {
     for line in lines {
         cave.add_line(&line);
     }
-    cave.draw();
     let mut total_sand = 0;
     while cave.drop_sand() {
         // cave.draw();
         total_sand += 1;
     }
-    println!("Total Sand: {}", total_sand);
+    println!("Total Sand: {}", total_sand + 1);
 }

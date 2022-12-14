@@ -84,25 +84,35 @@ impl Cave {
             index += 1;
         }
     }
+    fn get(&self, pt: &Point) -> Option<&Material> {
+        if pt.y == self.bottom_right.y + 2 {
+            Some(&Material::Rock)
+        } else {
+            self.map.get(pt)
+        }
+    }
     // True if the sand found a resting spot
     pub fn drop_sand(&mut self) -> bool {
         // For now always drops from 500, 0
         let mut sand_pos = Point::new(500, 0);
 
-        while sand_pos.y < self.bottom_right.y {
-            match self.map.get(&Point::new(sand_pos.x, sand_pos.y + 1)) {
+        loop {
+            match self.get(&Point::new(sand_pos.x, sand_pos.y + 1)) {
                 None => sand_pos.y += 1,
-                Some(_) => match self.map.get(&Point::new(sand_pos.x - 1, sand_pos.y + 1)) {
+                Some(_) => match self.get(&Point::new(sand_pos.x - 1, sand_pos.y + 1)) {
                     None => {
                         sand_pos.x -= 1;
                         sand_pos.y += 1;
                     }
-                    Some(_) => match self.map.get(&Point::new(sand_pos.x + 1, sand_pos.y + 1)) {
+                    Some(_) => match self.get(&Point::new(sand_pos.x + 1, sand_pos.y + 1)) {
                         None => {
                             sand_pos.x += 1;
                             sand_pos.y += 1;
                         }
                         Some(_) => {
+                            if sand_pos.y == 0 {
+                                return false;
+                            }
                             self.map.insert(sand_pos, Material::Sand);
                             return true;
                         }
@@ -110,7 +120,6 @@ impl Cave {
                 },
             }
         }
-        false
     }
     pub fn draw(&self) {
         for y in self.top_left.y..=self.bottom_right.y {
