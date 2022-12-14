@@ -1,6 +1,6 @@
 use nom::{
     branch::alt, character::complete, combinator::map, multi::separated_list0, sequence::delimited,
-    Finish, IResult,
+    IResult,
 };
 use std::cmp::Ordering;
 
