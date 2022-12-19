@@ -43,6 +43,14 @@ impl Cube {
         }
         neighbors
     }
+    fn in_bounds(&self, min: Self, max: Self) -> bool {
+        self.x >= min.x - 1
+            && self.x <= max.x + 1
+            && self.y >= min.y - 1
+            && self.y <= max.y + 1
+            && self.z >= min.z - 1
+            && self.z <= max.z + 1
+    }
 }
 
 impl Droplet {
@@ -58,11 +66,57 @@ impl Droplet {
         self.cubes
             .insert(Cube::new(numbers[0], numbers[1], numbers[2]));
     }
-    pub fn pt_1(&mut self) -> usize {
+    pub fn pt_1(&self) -> usize {
         self.cubes
             .iter()
             .flat_map(|cube| cube.neighbors())
             .filter(|cube| !self.cubes.contains(cube))
             .count()
+    }
+    pub fn pt_2(&self) -> usize {
+        let exposed = self.exposed();
+        self.cubes
+            .iter()
+            .flat_map(|cube| cube.neighbors())
+            .filter(|cube| exposed.contains(cube))
+            .count()
+    }
+
+    fn bounds(&self) -> (Cube, Cube) {
+        let mut min = Cube::new(i32::MAX, i32::MAX, i32::MAX);
+        let mut max = Cube::new(i32::MIN, i32::MIN, i32::MIN);
+        for cube in self.cubes.iter() {
+            min.x = min.x.min(cube.x);
+            min.y = min.y.min(cube.y);
+            min.z = min.z.min(cube.z);
+            max.x = max.x.max(cube.x);
+            max.y = max.y.max(cube.y);
+            max.z = max.z.max(cube.z);
+        }
+        (min, max)
+    }
+    fn exposed(&self) -> HashSet<Cube> {
+        let (min, max) = self.bounds();
+        let mut exposed = HashSet::new();
+
+        let start = Cube::new(0, 0, 0);
+        let mut stack = Vec::new();
+        let mut seen = HashSet::new();
+
+        stack.push(start);
+        seen.insert(start);
+
+        while let Some(cube) = stack.pop() {
+            for neighbor in cube.neighbors() {
+                if self.cubes.contains(&neighbor) || !neighbor.in_bounds(min, max) {
+                    continue;
+                }
+                if seen.insert(neighbor) {
+                    stack.push(neighbor);
+                    exposed.insert(neighbor);
+                }
+            }
+        }
+        exposed
     }
 }

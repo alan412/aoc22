@@ -22,4 +22,5 @@ fn main() {
         droplet.add_line(&line);
     }
     println!("Answer: {}", droplet.pt_1());
+    println!("Answer: {}", droplet.pt_2());
 }
