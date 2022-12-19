@@ -81,11 +81,11 @@ impl Cave {
         if row >= self.lines.len() as u32 {
             0x00
         } else {
-            let mut result: u8 = match left {
+            let result: u8 = match left {
                 0 => (self.lines[urow] & 0b0111_1000) >> 3,
                 1 => (self.lines[urow] & 0b0011_1100) >> 2,
                 2 => (self.lines[urow] & 0b0001_1110) >> 1,
-                3 => (self.lines[urow] & 0b0000_1111),
+                3 => self.lines[urow] & 0b0000_1111,
                 4 => (self.lines[urow] & 0b0000_0111) << 1,
                 5 => (self.lines[urow] & 0b0000_0011) << 2,
                 6 => (self.lines[urow] & 0b0000_0001) << 3,
@@ -105,13 +105,13 @@ impl Cave {
         let mut row: Vec<u16> = vec![0; 4];
 
         row[0] = self.get_shifted_line(top, left);
-        if (top > 0) {
+        if top > 0 {
             row[1] = self.get_shifted_line(top - 1, left);
         }
-        if (top > 1) {
+        if top > 1 {
             row[2] = self.get_shifted_line(top - 2, left);
         }
-        if (top > 2) {
+        if top > 2 {
             row[3] = self.get_shifted_line(top - 3, left);
         }
         return (row[0] << 12) | (row[1] << 8) | (row[2] << 4) | (row[3]);
@@ -171,11 +171,13 @@ impl Cave {
         }
     }
 
-    pub fn part_1(&mut self, num_rocks: u32) -> u32 {
+    pub fn part_1(&mut self, num_rocks: u64) -> u64 {
         let mut jet_space: u32 = 0;
+        let mut shape_num: u32 = 0;
 
-        for i in 0..num_rocks {
-            let shape = Self::get_shape(i);
+        for _ in 0..num_rocks {
+            let shape = Self::get_shape(shape_num);
+            shape_num = (shape_num + 1) % 5;
             let mut rock_left = 2;
             let mut rock_top = self.lines.len() as i32 + 2 + shape.get_max_height() as i32;
             loop {
@@ -212,7 +214,7 @@ impl Cave {
             self.place_rock(shape, rock_left as u32, rock_top as u32);
             //self.display();
         }
-        self.lines.len() as u32
+        self.lines.len() as u64
     }
     fn display(&self) {
         for line in self.lines.iter().rev() {
