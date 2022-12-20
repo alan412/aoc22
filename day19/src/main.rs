@@ -22,5 +22,5 @@ fn main() {
         factory.add_line(&line);
     }
     println!("Answer: {}", factory.pt_1());
-    //println!("Answer: {}", droplet.pt_2());
+    println!("Answer: {}", factory.pt_2());
 }

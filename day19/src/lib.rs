@@ -237,6 +237,13 @@ impl Factory {
         }
         quality_levels
     }
+    pub fn pt_2(&self) -> i32 {
+        self.blueprints
+            .iter()
+            .take(3)
+            .map(|blueprint| Self::search(blueprint, 32))
+            .product()
+    }
     fn search(factory: &Blueprint, minutes: usize) -> i32 {
         let mut queue = VecDeque::new();
         queue.push_back((Inventory::new(), 0, false));
