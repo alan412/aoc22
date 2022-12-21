@@ -22,5 +22,5 @@ fn main() {
         puzzle.add_line(&line);
     }
     println!("Answer: {}", puzzle.pt_1());
-    println!("Answer: {}", puzzle.pt_2());
+    println!("Pt 2: Answer: {}", puzzle.pt_2());
 }

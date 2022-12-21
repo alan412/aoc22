@@ -67,7 +67,76 @@ impl Puzzle {
     pub fn pt_1(&self) -> i64 {
         self.get_answer("root")
     }
-    pub fn pt_2(&self) -> i64 {
-        0
+
+    fn find_human_path(&self, name: &str) -> Option<Vec<String>> {
+        if name == "humn" {
+            return Some(vec![name.to_string()]);
+        }
+        match self.monkeys.get(name).unwrap() {
+            Monkey::Num(_) => None,
+            Monkey::Add(left, right)
+            | Monkey::Sub(left, right)
+            | Monkey::Mul(left, right)
+            | Monkey::Div(left, right) => {
+                if let Some(mut v) = self.find_human_path(left) {
+                    v.push(name.to_string());
+                    Some(v)
+                } else if let Some(mut v) = self.find_human_path(right) {
+                    v.push(name.to_string());
+                    Some(v)
+                } else {
+                    None
+                }
+            }
+        }
+    }
+    fn solve(&self, human_path: &mut Vec<String>, name: &str, equal_to: i64) -> i64 {
+        if name == "humn" {
+            return equal_to;
+        }
+        let monkey = self.monkeys.get(name).unwrap();
+        let (left, right) = match monkey {
+            Monkey::Num(_) => unreachable!(),
+            Monkey::Add(left, right)
+            | Monkey::Sub(left, right)
+            | Monkey::Mul(left, right)
+            | Monkey::Div(left, right) => (left, right),
+        };
+        let is_human_left = left == &human_path.pop().unwrap();
+        let (to_solve, other) = if is_human_left {
+            (left, self.get_answer(right))
+        } else {
+            (right, self.get_answer(left))
+        };
+        let sub_answer = match (monkey, is_human_left) {
+            (Monkey::Num(_), _) => unreachable!(),
+            (Monkey::Add(_, _), _) => equal_to - other,
+            (Monkey::Sub(_, _), true) => equal_to + other,
+            (Monkey::Sub(_, _), false) => other - equal_to,
+            (Monkey::Mul(_, _), _) => equal_to / other,
+            (Monkey::Div(_, _), true) => equal_to * other,
+            (Monkey::Div(_, _), false) => other / equal_to,
+        };
+        self.solve(human_path, to_solve, sub_answer)
+    }
+
+    pub fn pt_2(&mut self) -> i64 {
+        let mut human_path = self.find_human_path("root").unwrap();
+        println!("{:?}", human_path);
+        human_path.pop();
+        let (left, right) = match self.monkeys.get("root").unwrap() {
+            Monkey::Add(left, right)
+            | Monkey::Sub(left, right)
+            | Monkey::Mul(left, right)
+            | Monkey::Div(left, right) => (left, right),
+            Monkey::Num(_) => unreachable!(),
+        };
+        if left == &human_path.pop().unwrap() {
+            let right_result = self.get_answer(right);
+            self.solve(&mut human_path, left, right_result)
+        } else {
+            let left_result = self.get_answer(left);
+            self.solve(&mut human_path, right, left_result)
+        }
     }
 }
