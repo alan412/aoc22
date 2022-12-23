@@ -221,7 +221,7 @@ impl Puzzle {
         }
     }
     pub fn pt_1(&mut self) -> i32 {
-        self.display();
+        //self.display();
 
         for round in 0..10 {
             let moved = self.round();
@@ -230,7 +230,18 @@ impl Puzzle {
         }
         self.score()
     }
-    pub fn pt_2(&self) -> i32 {
-        0
+    pub fn pt_2(&mut self) -> i32 {
+        let mut moved = true;
+        let mut round = 10; // Part 1 has already moved 10 times
+                            //self.display();
+
+        while moved {
+            moved = self.round();
+            round += 1;
+            println!("Round {}", round);
+            //self.display();
+        }
+        round
+        //self.score()
     }
 }
