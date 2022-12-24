@@ -88,12 +88,12 @@ impl Puzzle {
             Blizzard::Up => {
                 new_pt.y -= 1;
                 if new_pt.y == 0 {
-                    new_pt.y = self.end_pt.y - 1;
+                    new_pt.y = self.line_num - 2;
                 }
             }
             Blizzard::Down => {
                 new_pt.y += 1;
-                if new_pt.y == self.end_pt.y {
+                if new_pt.y == self.line_num - 1 {
                     new_pt.y = 1;
                 }
             }
@@ -131,7 +131,7 @@ impl Puzzle {
         if new_pt.x == 0 || new_pt.x > self.width {
             return false;
         }
-        if new_pt.y == 0 || new_pt.y == self.end_pt.y {
+        if new_pt.y == 0 || new_pt.y >= self.end_pt.y.max(self.start_pt.y) {
             return false;
         }
         match blizzards.get(&new_pt) {
@@ -153,7 +153,7 @@ impl Puzzle {
             self.best_time = min;
             println!("Found solution: {} {:?}", min, curr_pt);
         } else {
-            // println!("Solving: {} {:?}", min, curr_pt);
+            //println!("Solving: {} {:?}", min, curr_pt);
             let next_min = min + 1;
             if let None = self.cache_blizzards.get(&next_min) {
                 let curr_blizzard = self.cache_blizzards.get(&min).unwrap();
@@ -165,24 +165,17 @@ impl Puzzle {
                 None => unreachable!(),
             };
             let mut attempts: Vec<Point> = Vec::new();
-            let mut new_pt = curr_pt.clone();
-            new_pt.y += 1; // Down
-            if self.can_move(blizzards, new_pt) {
-                attempts.push(new_pt);
-            }
-            new_pt = curr_pt;
-            new_pt.x += 1; // Right
-            if self.can_move(blizzards, new_pt) {
-                attempts.push(new_pt);
-            }
-            new_pt = curr_pt;
-            new_pt.x -= 1; // Left
-            if self.can_move(blizzards, new_pt) {
-                attempts.push(new_pt);
-            }
-            if new_pt.y != 0 {
-                new_pt = curr_pt;
-                new_pt.y -= 1; // Up
+
+            let range: [(i32, i32); 4] = if self.end_pt.y > curr_pt.y {
+                [(1, 0), (0, 1), (-1, 0), (0, -1)]
+            } else {
+                [(-1, 0), (0, -1), (1, 0), (0, 1)]
+            };
+            for d in &range {
+                let new_pt = Point {
+                    x: (curr_pt.x as i32 + d.0) as usize,
+                    y: (curr_pt.y as i32 + d.1) as usize,
+                };
                 if self.can_move(blizzards, new_pt) {
                     attempts.push(new_pt);
                 }
@@ -205,19 +198,26 @@ impl Puzzle {
         self.cache_blizzards.insert(0, self.blizzards.clone());
         self.solve(0, self.start_pt)
     }
-    pub fn pt_2(&mut self) -> i32 {
-        /*
-        let first_path = self.solve(0, self.start_pt);
+    pub fn pt_2(&mut self) -> u32 {
+        let first_path = self.pt_1();
         println!("First path: {}", first_path);
         let tmp_pt = self.start_pt;
         self.start_pt = self.end_pt;
         self.end_pt = tmp_pt;
         self.cache_steps_left.clear();
         self.best_time = u32::MAX;
-        self.blizzards =
-        let path_back = self.solve(first_path, self.start_pt);
+        self.blizzards = self.cache_blizzards.get(&first_path).unwrap().clone();
+        self.cache_blizzards.clear();
+        let path_back = self.pt_1();
         println!("Path back: {}", path_back);
-        */
-        0
+        self.end_pt = self.start_pt;
+        self.start_pt = tmp_pt;
+        self.cache_steps_left.clear();
+        self.best_time = u32::MAX;
+        self.blizzards = self.cache_blizzards.get(&path_back).unwrap().clone();
+        self.cache_blizzards.clear();
+        let path_back_again = self.pt_1();
+        println!("Path back AGAIN: {}", path_back_again);
+        first_path + path_back + path_back_again
     }
 }

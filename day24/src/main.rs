@@ -21,6 +21,6 @@ fn main() {
     for line in lines {
         puzzle.add_line(&line);
     }
-    println!("Answer: {}", puzzle.pt_1());
+    // println!("Answer: {}", puzzle.pt_1());
     println!("Pt 2: Answer: {}", puzzle.pt_2());
 }
