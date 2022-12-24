@@ -1,0 +1,60 @@
+Found solution: 35 Point { x: 1, y: 0 }
+Min:34 Point:Point { x: 1, y: 0 }
+Min:33 Point:Point { x: 1, y: 1 }
+Min:32 Point:Point { x: 1, y: 2 }
+Min:33 Point:Point { x: 1, y: 1 }
+Min:32 Point:Point { x: 2, y: 1 }
+Min:31 Point:Point { x: 2, y: 2 }
+Min:30 Point:Point { x: 3, y: 2 }
+Min:29 Point:Point { x: 3, y: 1 }
+Min:28 Point:Point { x: 2, y: 1 }
+Found solution: 29 Point { x: 1, y: 0 }
+Min:28 Point:Point { x: 1, y: 0 }
+Min:27 Point:Point { x: 1, y: 1 }
+Min:26 Point:Point { x: 1, y: 2 }
+Min:29 Point:Point { x: 3, y: 1 }
+Min:28 Point:Point { x: 4, y: 1 }
+Min:28 Point:Point { x: 2, y: 1 }
+Min:29 Point:Point { x: 3, y: 1 }
+Min:28 Point:Point { x: 3, y: 1 }
+Min:27 Point:Point { x: 3, y: 1 }
+Min:27 Point:Point { x: 1, y: 1 }
+Min:26 Point:Point { x: 2, y: 1 }
+Min:25 Point:Point { x: 2, y: 2 }
+Min:24 Point:Point { x: 3, y: 2 }
+Min:23 Point:Point { x: 3, y: 1 }
+Min:22 Point:Point { x: 2, y: 1 }
+Found solution: 23 Point { x: 1, y: 0 }
+Min:22 Point:Point { x: 1, y: 0 }
+Min:21 Point:Point { x: 1, y: 1 }
+Min:20 Point:Point { x: 1, y: 2 }
+Min:19 Point:Point { x: 2, y: 2 }
+Min:18 Point:Point { x: 3, y: 2 }
+Min:17 Point:Point { x: 4, y: 2 }
+Min:16 Point:Point { x: 5, y: 2 }
+Min:15 Point:Point { x: 6, y: 2 }
+Min:14 Point:Point { x: 6, y: 1 }
+Min:13 Point:Point { x: 5, y: 1 }
+Min:12 Point:Point { x: 4, y: 1 }
+Min:11 Point:Point { x: 3, y: 1 }
+Min:10 Point:Point { x: 2, y: 1 }
+Found solution: 11 Point { x: 1, y: 0 }
+Min:10 Point:Point { x: 1, y: 0 }
+Min:9 Point:Point { x: 1, y: 1 }
+Min:8 Point:Point { x: 1, y: 2 }
+Min:11 Point:Point { x: 3, y: 1 }
+Min:10 Point:Point { x: 4, y: 1 }
+Min:10 Point:Point { x: 2, y: 1 }
+Min:9 Point:Point { x: 3, y: 1 }
+Min:9 Point:Point { x: 1, y: 1 }
+Min:8 Point:Point { x: 2, y: 1 }
+Min:7 Point:Point { x: 2, y: 2 }
+Min:6 Point:Point { x: 3, y: 2 }
+Min:5 Point:Point { x: 4, y: 2 }
+Min:4 Point:Point { x: 5, y: 2 }
+Min:3 Point:Point { x: 6, y: 2 }
+Min:2 Point:Point { x: 6, y: 3 }
+Min:1 Point:Point { x: 6, y: 4 }
+Min:0 Point:Point { x: 6, y: 5 }
+Path back: 11
+Pt 2: Answer: 29
