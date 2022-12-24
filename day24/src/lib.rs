@@ -88,12 +88,12 @@ impl Puzzle {
             Blizzard::Up => {
                 new_pt.y -= 1;
                 if new_pt.y == 0 {
-                    new_pt.y = self.line_num - 1;
+                    new_pt.y = self.end_pt.y - 1;
                 }
             }
             Blizzard::Down => {
                 new_pt.y += 1;
-                if new_pt.y == self.line_num - 1 {
+                if new_pt.y == self.end_pt.y {
                     new_pt.y = 1;
                 }
             }
@@ -131,7 +131,7 @@ impl Puzzle {
         if new_pt.x == 0 || new_pt.x > self.width {
             return false;
         }
-        if new_pt.y == 0 || new_pt.y >= (self.line_num - 1) {
+        if new_pt.y == 0 || new_pt.y == self.end_pt.y {
             return false;
         }
         match blizzards.get(&new_pt) {
@@ -153,7 +153,7 @@ impl Puzzle {
             self.best_time = min;
             println!("Found solution: {} {:?}", min, curr_pt);
         } else {
-            //println!("Solving: {} {:?}", min, curr_pt);
+            // println!("Solving: {} {:?}", min, curr_pt);
             let next_min = min + 1;
             if let None = self.cache_blizzards.get(&next_min) {
                 let curr_blizzard = self.cache_blizzards.get(&min).unwrap();
@@ -191,16 +191,11 @@ impl Puzzle {
                 attempts.push(curr_pt);
             }
 
-            let mut best_pt = Point { x: 0, y: 0 };
             for pt in attempts {
                 let result = self.solve(min + 1, pt);
                 if result != u32::MAX {
                     best = best.min(result + 1);
-                    best_pt = pt;
                 }
-            }
-            if best != u32::MAX {
-                println!("Min:{} Point:{:?}", min, best_pt);
             }
         }
         self.cache_steps_left.insert((min, curr_pt), best);
@@ -210,7 +205,8 @@ impl Puzzle {
         self.cache_blizzards.insert(0, self.blizzards.clone());
         self.solve(0, self.start_pt)
     }
-    pub fn pt_2(&mut self) -> u32 {
+    pub fn pt_2(&mut self) -> i32 {
+        /*
         let first_path = self.solve(0, self.start_pt);
         println!("First path: {}", first_path);
         let tmp_pt = self.start_pt;
@@ -218,22 +214,10 @@ impl Puzzle {
         self.end_pt = tmp_pt;
         self.cache_steps_left.clear();
         self.best_time = u32::MAX;
-        self.blizzards = self.cache_blizzards.get(&first_path).unwrap().clone();
-        self.cache_blizzards.clear();
-        let path_back = self.pt_1();
+        self.blizzards =
+        let path_back = self.solve(first_path, self.start_pt);
         println!("Path back: {}", path_back);
-        let path_back_again = 0;
-        /*
-                self.end_pt = self.start_pt;
-                self.start_pt = tmp_pt;
-                self.cache_steps_left.clear();
-                self.best_time = u32::MAX;
-                self.blizzards = self.cache_blizzards.get(&path_back).unwrap().clone();
-                self.cache_blizzards.clear();
-                let path_back_again = self.pt_1();
-                println!("Path back AGAIN: {}", path_back_again);
         */
-
-        first_path + path_back + path_back_again
+        0
     }
 }
