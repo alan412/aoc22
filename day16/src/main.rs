@@ -18,10 +18,9 @@ fn main() {
     let lines = lines_from_file(filename).expect("Could not load");
     let mut cave = Cave::new();
 
-    for line in lines {
-        cave.add_room(&line);
+    for line in &lines {
+        cave.add_room(line);
     }
-    cave.update_rooms();
     println!("{:?}", cave);
     println!("Answer: {}", cave.part_1());
 }

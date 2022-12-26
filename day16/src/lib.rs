@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_while},
@@ -6,50 +7,68 @@ use nom::{
     multi::separated_list0,
     sequence::tuple,
 };
-use std::collections::HashMap;
+use std::cmp::Ordering;
+use std::collections::{BTreeSet, BinaryHeap, HashMap, HashSet, VecDeque};
 use std::str::FromStr;
 
 #[derive(Debug)]
-struct Room {
-    name: String,
+struct Room<'a> {
     flow_rate: u32,
-    connections_str: Vec<String>,
-    connections_int: Vec<usize>,
+    connections: HashSet<&'a str>,
 }
 
 #[derive(Debug)]
-pub struct Cave {
-    decoder: HashMap<String, usize>,
-    rooms: Vec<Room>,
+pub struct Cave<'a> {
+    rooms: HashMap<&'a str, Room<'a>>,
+}
+
+#[derive(PartialEq, Eq)]
+struct Node<'a> {
+    cost: u32,
+    curr: &'a str,
+}
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+struct State<'a> {
+    opened: BTreeSet<&'a str>,
+    curr: &'a str,
+    elapsed: u32,
+    relieved: u32,
+}
+
+impl<'a> Ord for Node<'a> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.cost.cmp(&self.cost)
+    }
+}
+
+impl<'a> PartialOrd for Node<'a> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 fn parse_valve_name(i: &str) -> nom::IResult<&str, &str> {
     take_while(|c: char| c.is_alphabetic())(i)
 }
 
-impl Room {
-    pub fn new(name: String, flow_rate: u32, connections: Vec<&str>) -> Self {
-        let mut str_connections: Vec<String> = Vec::new();
-        for c in connections {
-            str_connections.push(c.to_string());
-        }
+impl<'a> Room<'a> {
+    pub fn new(flow_rate: u32, connections: Vec<&'a str>) -> Self {
+        let set: HashSet<&str> = connections.iter().map(|str| *str).collect();
         Self {
-            name,
             flow_rate,
-            connections_str: str_connections,
-            connections_int: Vec::new(),
+            connections: set,
         }
     }
 }
 
-impl Cave {
+impl<'a> Cave<'a> {
     pub fn new() -> Self {
         Self {
-            rooms: Vec::new(),
-            decoder: HashMap::new(),
+            rooms: HashMap::new(),
         }
     }
-    pub fn add_room(&mut self, line: &String) {
+    pub fn add_room(&mut self, line: &'a str) {
         let mut parse_valve = tuple((
             tag("Valve "),
             parse_valve_name,
@@ -65,60 +84,127 @@ impl Cave {
         let (_, room_name, _, flow_rate, _, connections) = result.1;
 
         self.rooms
-            .push(Room::new(room_name.to_string(), flow_rate, connections));
-        self.decoder
-            .insert(room_name.to_string(), self.rooms.len() - 1);
+            .insert(room_name, Room::new(flow_rate, connections));
     }
-    pub fn update_rooms(&mut self) {
-        for room in self.rooms.iter_mut() {
-            for name in room.connections_str.iter() {
-                match self.decoder.get(name) {
-                    Some(dest_num) => room.connections_int.push(*dest_num),
-                    None => {}
+
+    fn min_cost(&self, from: &str, to: &str) -> u32 {
+        let mut pq = BinaryHeap::new();
+        let mut seen = HashSet::new();
+
+        pq.push(Node {
+            cost: 0,
+            curr: from,
+        });
+
+        while let Some(Node { cost, curr }) = pq.pop() {
+            if curr == to {
+                return cost;
+            }
+            for neighbor in self.rooms[curr].connections.iter() {
+                if seen.insert(neighbor) {
+                    pq.push(Node {
+                        cost: cost + 1,
+                        curr: neighbor,
+                    });
                 }
             }
         }
+        u32::MAX
     }
-    pub fn part_1(&mut self) -> u32 {
-        let curr_room = match self.decoder.get("AA") {
-            Some(val) => *val,
-            None => 0,
-        };
-        let mut cache = HashMap::new();
+    fn min_distances(&self) -> HashMap<(&'a str, &'a str), u32> {
+        self.rooms
+            .iter()
+            .filter(|(_, room)| room.flow_rate > 0)
+            .map(|(&name, _)| name)
+            .tuple_combinations()
+            .fold(HashMap::new(), |mut acc, (name1, name2)| {
+                acc.entry(("AA", name1))
+                    .or_insert_with(|| self.min_cost("AA", name1));
+                acc.entry(("AA", name2))
+                    .or_insert_with(|| self.min_cost("AA", name2));
 
-        let mut path = Vec::new();
-        self.max_flow(curr_room, &mut path, 30, &mut cache)
+                let dist = self.min_cost(name1, name2);
+                acc.insert((name1, name2), dist);
+                acc.insert((name2, name1), dist);
+                acc
+            })
     }
-
-    fn max_flow(
+    fn wait_until_end(
         &self,
-        curr_room: usize,
-        path: &mut Vec<usize>,
-        time_left: i32,
-        cache: &mut HashMap<(usize, Vec<usize>, i32), u32>,
+        max_time: u32,
+        elapsed: u32,
+        relieved: u32,
+        opened: &BTreeSet<&str>,
     ) -> u32 {
-        if time_left <= 0 {
-            return 0;
-        }
-        if let Some(&result) = cache.get(&(curr_room, path.to_vec(), time_left)) {
-            return result;
-        }
-        let mut best = u32::MIN;
+        let time_left = max_time - elapsed;
+        let relieved_per_min: u32 = opened.iter().map(|name| self.rooms[name].flow_rate).sum();
+        relieved + (relieved_per_min * time_left)
+    }
 
-        if self.rooms[curr_room].flow_rate > 0 && !path.contains(&curr_room) {
-            for dest in self.rooms[curr_room].connections_int.iter() {
-                path.push(curr_room);
-                let sub_result = self.max_flow(*dest, path, time_left - 2, cache);
-                best =
-                    best.max(sub_result + self.rooms[curr_room].flow_rate * (time_left - 1) as u32);
-                path.pop();
+    pub fn part_1(&mut self) -> u32 {
+        let dist_map = self.min_distances();
+        let flowing: HashSet<_> = self
+            .rooms
+            .iter()
+            .filter(|(_, valve)| valve.flow_rate > 0)
+            .map(|(&name, _)| name)
+            .collect();
+
+        let mut max_relieved = 0;
+        let mut q = VecDeque::new();
+        let mut seen = HashSet::new();
+
+        q.push_back(State {
+            curr: "AA",
+            opened: BTreeSet::new(),
+            elapsed: 0,
+            relieved: 0,
+        });
+        seen.insert((BTreeSet::new(), 0, 0));
+
+        while let Some(State {
+            opened,
+            curr,
+            elapsed,
+            relieved,
+        }) = q.pop_front()
+        {
+            if opened.len() == flowing.len() || elapsed >= 30 {
+                let relieved_at_end = self.wait_until_end(30, elapsed, relieved, &opened);
+                max_relieved = max_relieved.max(relieved_at_end);
+                continue;
+            }
+            let unopened = flowing.iter().filter(|name| !opened.contains(*name));
+
+            for dest in unopened {
+                let cost = dist_map[&(curr, *dest)] + 1;
+                let new_elapsed = elapsed + cost;
+
+                if new_elapsed >= 30 {
+                    let relieved_at_end = self.wait_until_end(30, elapsed, relieved, &opened);
+                    max_relieved = max_relieved.max(relieved_at_end);
+                    continue;
+                }
+
+                let relieved_per_min: u32 =
+                    opened.iter().map(|name| &self.rooms[name].flow_rate).sum();
+                let new_relieved = relieved + (relieved_per_min * cost);
+                let mut new_opened = opened.clone();
+                new_opened.insert(dest);
+
+                if seen.insert((new_opened.clone(), new_elapsed, new_relieved)) {
+                    q.push_back(State {
+                        opened: new_opened,
+                        curr: dest,
+                        elapsed: new_elapsed,
+                        relieved: new_relieved,
+                    });
+                }
             }
         }
-        for dest in self.rooms[curr_room].connections_int.iter() {
-            let sub_result = self.max_flow(*dest, path, time_left - 1, cache);
-            best = best.max(sub_result);
-        }
-        cache.insert((curr_room, path.to_vec(), time_left), best);
-        best
+        max_relieved
+    }
+    pub fn part_2(&mut self) -> u32 {
+        0
     }
 }
