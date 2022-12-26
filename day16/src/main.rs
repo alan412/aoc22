@@ -22,5 +22,5 @@ fn main() {
         cave.add_room(line);
     }
     println!("{:?}", cave);
-    println!("Answer: {}", cave.part_1());
+    println!("Answer - pt2: {}", cave.part_2());
 }
