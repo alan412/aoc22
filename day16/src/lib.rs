@@ -205,6 +205,70 @@ impl<'a> Cave<'a> {
         max_relieved
     }
     pub fn part_2(&mut self) -> u32 {
-        0
+        let dist_map = self.min_distances();
+        let flowing: HashSet<_> = self
+            .rooms
+            .iter()
+            .filter(|(_, valve)| valve.flow_rate > 0)
+            .map(|(&name, _)| name)
+            .collect();
+
+        let mut max_relieved_states: HashMap<BTreeSet<&str>, u32> = HashMap::new();
+        let mut q = VecDeque::new();
+
+        q.push_back(State {
+            curr: "AA",
+            opened: BTreeSet::new(),
+            elapsed: 0,
+            relieved: 0,
+        });
+
+        while let Some(State {
+            opened,
+            curr,
+            elapsed,
+            relieved,
+        }) = q.pop_front()
+        {
+            let relieved_at_end = self.wait_until_end(26, elapsed, relieved, &opened);
+            max_relieved_states
+                .entry(opened.clone())
+                .and_modify(|val| *val = relieved_at_end.max(*val))
+                .or_insert(relieved_at_end);
+
+            if opened.len() == flowing.len() || elapsed >= 26 {
+                continue;
+            }
+            let unopened = flowing.iter().filter(|name| !opened.contains(*name));
+
+            for dest in unopened {
+                let cost = dist_map[&(curr, *dest)] + 1;
+                let new_elapsed = elapsed + cost;
+
+                if new_elapsed >= 26 {
+                    continue;
+                }
+
+                let relieved_per_min: u32 =
+                    opened.iter().map(|name| &self.rooms[name].flow_rate).sum();
+                let new_relieved = relieved + (relieved_per_min * cost);
+                let mut new_opened = opened.clone();
+                new_opened.insert(dest);
+
+                q.push_back(State {
+                    opened: new_opened,
+                    curr: dest,
+                    elapsed: new_elapsed,
+                    relieved: new_relieved,
+                });
+            }
+        }
+        max_relieved_states
+            .iter()
+            .tuple_combinations()
+            .filter(|(human, elephant)| human.0.is_disjoint(elephant.0))
+            .map(|(human, elephant)| human.1 + elephant.1)
+            .max()
+            .unwrap()
     }
 }
