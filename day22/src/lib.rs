@@ -19,7 +19,7 @@ enum Step {
     Right,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 enum Facing {
     Right,
     Left,
@@ -27,7 +27,7 @@ enum Facing {
     Up,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Position {
     pt: Point,
     dir: Facing,
@@ -140,80 +140,227 @@ impl Puzzle {
             x += 1;
         }
     }
+    fn move_one_2d(&self, pos: &Position) -> Position {
+        match pos.dir {
+            Facing::Right => Position {
+                pt: Point {
+                    x: (pos.pt.x + 1) % self.largest_x,
+                    y: pos.pt.y,
+                },
+                dir: pos.dir,
+            },
+            Facing::Down => Position {
+                pt: Point {
+                    x: pos.pt.x,
+                    y: (pos.pt.y + 1) % self.rows,
+                },
+                dir: pos.dir,
+            },
+            Facing::Left => Position {
+                pt: Point {
+                    x: pos.pt.x.checked_sub(1).unwrap_or(self.largest_x - 1),
+                    y: pos.pt.y,
+                },
+                dir: pos.dir,
+            },
+            Facing::Up => Position {
+                pt: Point {
+                    x: pos.pt.x,
+                    y: pos.pt.y.checked_sub(1).unwrap_or(self.rows - 1),
+                },
+                dir: pos.dir,
+            },
+        }
+    }
 
-    fn sub_y(&self, pt: &mut Point) {
-        if pt.y == 0 {
-            pt.y = self.rows - 1
-        } else {
-            pt.y = pt.y - 1
-        }
-    }
-    fn sub_x(&self, pt: &mut Point) {
-        if pt.x == 0 {
-            pt.x = self.largest_x - 1
-        } else {
-            pt.x = pt.x - 1
-        }
-    }
-    fn add_y(&self, pt: &mut Point) {
-        pt.y += 1;
-        if pt.y >= self.rows {
-            pt.y = 0
-        }
-    }
-    fn add_x(&self, pt: &mut Point) {
-        pt.x += 1;
-        if pt.x >= self.largest_x {
-            pt.x = 0;
+    // only works for cube in this order
+    // _AB
+    // _C_
+    // DE_
+    // F__
+    // A on top
+
+    fn move_cube(&self, pos: &Position) -> Position {
+        let x = pos.pt.x;
+        let y = pos.pt.y;
+
+        //println!("pos: {:?}", pos);
+        match pos.dir {
+            Facing::Right => match (x, y) {
+                (99, 0..=49) => Position {
+                    pt: Point { x: 100, y },
+                    dir: Facing::Right,
+                },
+                (149, 0..=49) => Position {
+                    pt: Point { x: 99, y: 149 - y },
+                    dir: Facing::Left,
+                },
+                (99, 50..=99) => Position {
+                    pt: Point { x: 50 + y, y: 49 },
+                    dir: Facing::Up,
+                },
+                (49, 100..=149) => Position {
+                    pt: Point { x: 50, y },
+                    dir: Facing::Right,
+                },
+                (99, 100..=149) => Position {
+                    pt: Point { x: 149, y: 149 - y },
+                    dir: Facing::Left,
+                },
+                (49, 150..=199) => Position {
+                    pt: Point { x: y - 100, y: 149 },
+                    dir: Facing::Up,
+                },
+                _ => Position {
+                    pt: Point { x: x + 1, y },
+                    dir: Facing::Right,
+                },
+            },
+            Facing::Left => match (x, y) {
+                (50, 0..=49) => Position {
+                    pt: Point { x: 0, y: 149 - y },
+                    dir: Facing::Right,
+                },
+                (100, 0..=49) => Position {
+                    pt: Point { x: 99, y },
+                    dir: Facing::Left,
+                },
+                (50, 50..=99) => Position {
+                    pt: Point { x: y - 50, y: 100 },
+                    dir: Facing::Down,
+                },
+                (0, 100..=149) => Position {
+                    pt: Point { x: 50, y: 149 - y },
+                    dir: Facing::Right,
+                },
+                (50, 100..=149) => Position {
+                    pt: Point { x: 49, y },
+                    dir: Facing::Left,
+                },
+                (0, 150..=199) => Position {
+                    pt: Point { x: y - 100, y: 0 },
+                    dir: Facing::Down,
+                },
+                _ => Position {
+                    pt: Point { x: x - 1, y },
+                    dir: Facing::Left,
+                },
+            },
+            Facing::Up => match (x, y) {
+                (50..=99, 0) => Position {
+                    pt: Point { x: 0, y: 100 + x },
+                    dir: Facing::Right,
+                },
+                (100..=149, 0) => Position {
+                    pt: Point { x: x - 100, y: 199 },
+                    dir: Facing::Up,
+                },
+                (50..=99, 50) => Position {
+                    pt: Point { x, y: 49 },
+                    dir: Facing::Up,
+                },
+                (0..=49, 100) => Position {
+                    pt: Point { x: 50, y: x + 50 },
+                    dir: Facing::Right,
+                },
+                (50..=99, 100) => Position {
+                    pt: Point { x, y: 99 },
+                    dir: Facing::Up,
+                },
+                (0..=49, 150) => Position {
+                    pt: Point { x, y: 149 },
+                    dir: Facing::Up,
+                },
+                _ => Position {
+                    pt: Point { x, y: y - 1 },
+                    dir: Facing::Up,
+                },
+            },
+            Facing::Down => match (x, y) {
+                (50..=99, 49) => Position {
+                    pt: Point { x, y: 50 },
+                    dir: Facing::Down,
+                },
+                (100..=149, 49) => Position {
+                    pt: Point { x: 99, y: x - 50 },
+                    dir: Facing::Left,
+                },
+                (50..=99, 99) => Position {
+                    pt: Point { x, y: 100 },
+                    dir: Facing::Down,
+                },
+                (0..=49, 149) => Position {
+                    pt: Point { x, y: 150 },
+                    dir: Facing::Down,
+                },
+                (50..=99, 149) => Position {
+                    pt: Point { x: 49, y: 100 + x },
+                    dir: Facing::Left,
+                },
+                (0..=49, 199) => Position {
+                    pt: Point { x: x + 100, y: 0 },
+                    dir: Facing::Down,
+                },
+                _ => Position {
+                    pt: Point { x, y: y + 1 },
+                    dir: Facing::Down,
+                },
+            },
         }
     }
 
-    fn move_self(&self, pt: Point, f: fn(&Self, &mut Point)) -> Point {
-        let mut new_point = pt;
-        f(self, &mut new_point);
+    fn move_self(&self, pos: &Position, move_one: fn(&Self, &Position) -> Position) -> Position {
+        let mut new_position = *pos;
+        new_position = move_one(self, &new_position);
+        println!("{:?} -> {:?}", pos, new_position);
 
         loop {
-            match self.map.get(&new_point) {
-                None => f(self, &mut new_point),
+            match self.map.get(&new_position.pt) {
+                None => {
+                    unreachable!("Huh?");
+                    new_position = move_one(self, &new_position)
+                }
                 Some(ch) => {
                     if *ch == '#' {
-                        return pt;
+                        return *pos;
                     } else {
-                        return new_point;
+                        println!("Returning {:?} -> {:?}", pos, new_position);
+                        return new_position;
                     }
                 }
             }
         }
     }
 
-    fn move_pos(&self, pos: &mut Position, step: &Step) {
-        match step {
-            Step::Left => pos.turn_left(),
-            Step::Right => pos.turn_right(),
-            Step::Move(amount) => {
-                for _ in 0..*amount {
-                    pos.pt = match pos.dir {
-                        Facing::Left => self.move_self(pos.pt, Self::sub_x),
-                        Facing::Right => self.move_self(pos.pt, Self::add_x),
-                        Facing::Down => self.move_self(pos.pt, Self::add_y),
-                        Facing::Up => self.move_self(pos.pt, Self::sub_y),
-                    }
-                }
-            }
-        }
-    }
-
-    pub fn pt_1(&self) -> u32 {
+    fn solve(&self, move_one: fn(&Self, &Position) -> Position) -> u32 {
         let mut pos = Position {
             pt: self.find_upper_left(),
             dir: Facing::Right,
         };
+
         for step in self.steps.iter() {
-            self.move_pos(&mut pos, step);
+            println!("Step: {:?} Pos: {:?}", step, pos);
+            match step {
+                Step::Left => pos.turn_left(),
+                Step::Right => pos.turn_right(),
+                Step::Move(amount) => {
+                    for i in 0..*amount {
+                        println!("-{} {:?}", i, pos);
+                        pos = self.move_self(&pos, move_one);
+                        println!("--{} {:?}", i, pos);
+                    }
+                }
+            }
         }
         pos.score()
     }
-    pub fn pt_2(&self) -> u32 {
+
+    pub fn pt_1(&self) -> u32 {
         0
+        // self.solve(Self::move_one_2d)
+    }
+
+    pub fn pt_2(&self) -> u32 {
+        self.solve(Self::move_cube)
     }
 }
