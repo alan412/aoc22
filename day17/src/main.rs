@@ -11,5 +11,6 @@ fn main() {
     let mut cave = Cave::new(contents);
 
     //println!("{:?}", cave);
-    println!("Answer: {}", cave.part_1(2022));
+    //println!("Answer: {}", cave.part_1(2022));
+    println!("Answer - Pt2: {}", cave.part_1(1_000_000_000_000));
 }

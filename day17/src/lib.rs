@@ -1,8 +1,10 @@
+use std::collections::{hash_map::Entry, HashMap};
+
 #[derive(Debug)]
 pub struct Cave {
     lines: Vec<u8>,
     jets: Vec<char>,
-    width: u32,
+    width: usize,
 }
 #[derive(Debug, Copy, Clone)]
 enum Shape {
@@ -13,7 +15,7 @@ enum Shape {
     Square,
 }
 impl Shape {
-    pub fn get_max_height(&self) -> u32 {
+    pub fn get_max_height(&self) -> usize {
         match self {
             Shape::Horiz => 1,
             Shape::Cross => 3,
@@ -22,7 +24,7 @@ impl Shape {
             Shape::Square => 2,
         }
     }
-    pub fn get_max_width(&self) -> u32 {
+    pub fn get_max_width(&self) -> usize {
         match self {
             Shape::Horiz => 4,
             Shape::Cross => 3,
@@ -40,7 +42,7 @@ impl Shape {
             Shape::Square => 0b1100_1100_0000_0000,
         }
     }
-    pub fn get_bits_row(&self, row: u32) -> u8 {
+    pub fn get_bits_row(&self, row: usize) -> u8 {
         let place_bits = self.get_bits();
         match row {
             1 => ((place_bits & 0b1111_0000_0000_0000) >> 12)
@@ -66,7 +68,7 @@ impl Cave {
             width: 7,
         }
     }
-    fn get_shape(rock_num: u32) -> Shape {
+    fn get_shape(rock_num: usize) -> Shape {
         match rock_num % 5 {
             0 => Shape::Horiz,
             1 => Shape::Cross,
@@ -76,32 +78,25 @@ impl Cave {
             _ => panic!("Shouldn't get here"),
         }
     }
-    fn get_shifted_line(&self, row: u32, left: u32) -> u16 {
-        let urow: usize = row as usize;
-        if row >= self.lines.len() as u32 {
+    fn get_shifted_line(&self, row: usize, left: usize) -> u16 {
+        if row >= self.lines.len() {
             0x00
         } else {
             let result: u8 = match left {
-                0 => (self.lines[urow] & 0b0111_1000) >> 3,
-                1 => (self.lines[urow] & 0b0011_1100) >> 2,
-                2 => (self.lines[urow] & 0b0001_1110) >> 1,
-                3 => self.lines[urow] & 0b0000_1111,
-                4 => (self.lines[urow] & 0b0000_0111) << 1,
-                5 => (self.lines[urow] & 0b0000_0011) << 2,
-                6 => (self.lines[urow] & 0b0000_0001) << 3,
+                0 => (self.lines[row] & 0b0111_1000) >> 3,
+                1 => (self.lines[row] & 0b0011_1100) >> 2,
+                2 => (self.lines[row] & 0b0001_1110) >> 1,
+                3 => self.lines[row] & 0b0000_1111,
+                4 => (self.lines[row] & 0b0000_0111) << 1,
+                5 => (self.lines[row] & 0b0000_0011) << 2,
+                6 => (self.lines[row] & 0b0000_0001) << 3,
                 _ => panic!("Unknown left"),
             };
-            /*
-                        println!(
-                            "Urow: {} Line: {:07b} Left {} Result {:04b}",
-                            urow, self.lines[urow], left, result
-                        );
-            */
             (result & 0x0f) as u16
         }
     }
 
-    fn get_u16(&self, top: u32, left: u32) -> u16 {
+    fn get_u16(&self, top: usize, left: usize) -> u16 {
         let mut row: Vec<u16> = vec![0; 4];
 
         row[0] = self.get_shifted_line(top, left);
@@ -124,7 +119,7 @@ impl Cave {
         {
             false
         } else {
-            (shape.get_bits() & self.get_u16(new_rock_top as u32, new_rock_left as u32)) == 0
+            (shape.get_bits() & self.get_u16(new_rock_top as usize, new_rock_left as usize)) == 0
         }
     }
 
@@ -171,15 +166,29 @@ impl Cave {
         }
     }
 
-    pub fn part_1(&mut self, num_rocks: u64) -> u64 {
-        let mut jet_space: u32 = 0;
-        let mut shape_num: u32 = 0;
+    fn get_skyline(&self) -> u64 {
+        let mut last_lines = [0_u8; 8];
+        let len = self.lines.len();
 
-        for _ in 0..num_rocks {
+        for i in 0..8 {
+            last_lines[i] = self.lines[len - (1 + i)];
+        }
+        u64::from_ne_bytes(last_lines)
+    }
+
+    pub fn part_1(&mut self, num_rocks: usize) -> usize {
+        let mut jet_space: usize = 0;
+        let mut shape_num: usize = 0;
+        let mut rock_num: usize = 0;
+        let mut seen: HashMap<(u64, usize, usize), (usize, usize)> = HashMap::new();
+        let mut cycle_height = 0;
+
+        while rock_num < num_rocks {
             let shape = Self::get_shape(shape_num);
             shape_num = (shape_num + 1) % 5;
             let mut rock_left = 2;
-            let mut rock_top = self.lines.len() as i32 + 2 + shape.get_max_height() as i32;
+            let mut rock_top = self.lines.len() + 2 + shape.get_max_height();
+
             loop {
                 /*
                                 println!(
@@ -189,14 +198,16 @@ impl Cave {
                 */
                 match self.jets[jet_space as usize] {
                     '<' => {
-                        rock_left -= if self.can_move(shape, rock_top, rock_left - 1 as i32) {
+                        rock_left -= if self.can_move(shape, rock_top as i32, rock_left as i32 - 1)
+                        {
                             1
                         } else {
                             0
                         }
                     }
                     '>' => {
-                        rock_left += if self.can_move(shape, rock_top, rock_left + 1 as i32) {
+                        rock_left += if self.can_move(shape, rock_top as i32, rock_left as i32 + 1)
+                        {
                             1
                         } else {
                             0
@@ -204,17 +215,36 @@ impl Cave {
                     }
                     _ => panic!("Unexpected jet"),
                 }
-                jet_space = (jet_space + 1) % self.jets.len() as u32;
-                if self.can_move(shape, rock_top - 1, rock_left as i32) {
+                jet_space = (jet_space + 1) % self.jets.len();
+                if self.can_move(shape, rock_top as i32 - 1, rock_left as i32) {
                     rock_top -= 1;
                 } else {
                     break;
                 }
             }
             self.place_rock(shape, rock_left as u32, rock_top as u32);
+            rock_num += 1;
+            if self.lines.len() < 8 {
+                continue;
+            }
+            // If we have seen same shape_num, same jet_index, and same top of cave
+            let state = (self.get_skyline(), shape_num, jet_space);
+            match seen.entry(state) {
+                Entry::Occupied(e) => {
+                    let (old_num, old_height) = e.get();
+                    let num_rocks_in_cycle = rock_num - old_num;
+                    let num_cycles = (num_rocks - rock_num) / num_rocks_in_cycle;
+                    rock_num += num_rocks_in_cycle * num_cycles;
+                    cycle_height += num_cycles * (self.lines.len() - old_height);
+                    seen.clear();
+                }
+                Entry::Vacant(e) => {
+                    e.insert((rock_num, self.lines.len()));
+                }
+            }
             //self.display();
         }
-        self.lines.len() as u64
+        self.lines.len() + cycle_height
     }
     fn display(&self) {
         for line in self.lines.iter().rev() {
